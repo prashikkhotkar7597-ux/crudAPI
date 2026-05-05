@@ -1,33 +1,28 @@
-HELP.md
-target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+pipeline {
+    agent any
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
+    tools {
+        jdk 'Java17'
+        maven 'Maven3'
+    }
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
+    stages {
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
+        stage('Build') {
+            steps {
+                bat 'mvn clean package -DskipTests'
+            }
+        }
 
-### VS Code ###
-.vscode/
+        stage('Run App') {
+            steps {
+                bat '''
+                for /f "tokens=5" %%a in ('netstat -ano ^| findstr :8081') do taskkill /F /PID %%a
+                '''
+                bat '''
+                start /b java -jar target\\*.jar
+                '''
+            }
+        }
+    }
+}
